@@ -1,5 +1,7 @@
 const User = require('../models/User');
 const Post = require('../models/Post');
+const ErrorResponse = require('../utils/errorResponse');
+const ErrorRespose = require('../utils/errorResponse');
 
 
 exports.userDataFunction = async (req, res, next) => {
@@ -79,3 +81,38 @@ exports.updatePostFunction = async (req, res, next) => {
         next(error);
     }
 };
+
+
+exports.signInUserFunction = async (req, res, next) => {
+    const { email, password } = req.body;
+
+    if(!email || !password) {
+        return next( new ErrorRespose( 'Please provide email and password', 400 ) );
+    }
+    try {
+        const user = await User.findOne({ email }).select('+password');
+
+        if( !user ) {
+            return next( new ErrorRespose( 'Invalid credentials', 401 ) );
+        }
+
+        const isMatch = await user.matchPassword(password);
+
+        if(!isMatch) {
+            return next( new ErrorRespose( 'Invalid credentials', 401 ) );
+        }
+
+        sendToken(user, 201, res);
+
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+
+const sendToken = async (user, statusCode, res) => {
+    const token = await user.getSignedToken();
+
+    res.status(statusCode).json({ success: true, token });
+};
+
