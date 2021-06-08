@@ -21,8 +21,8 @@ exports.protect = async (req, res, next) => {
         const user = await User.findById( decoded.id );
 
 
-        if( !technician ) {
-            return next( new ErrorResponse( 'No technician with this ID found!', 404 ));
+        if( !user ) {
+            return next( new ErrorResponse( 'No user with this ID found!', 404 ));
         }
 
         req.user = user;
